@@ -26,9 +26,9 @@ import pyautogui
 
 
 
-newsapi = "f1a55c8b69534d0493eba1f88fad636f"
-MyApi="1c3bd2b42d484a198a1c192b6cb44020"
-api_key1 = "ace940159c9cf0c1c2e1fed4a7ffaee2"
+newsapi = "your news api key"
+MyApi="your api key openai"
+api_key1 = "your api key"
 def aiProcess(command) :
 
     client = OpenAI(
@@ -278,12 +278,6 @@ def processCommand(c):
             speak("message has been sent!")
         else:
             speak(f"Sorry, I don't have an phone number for {phone}.") 
-    # elif c.lower() == "open xhamster":
-    #     speak("opening xhamstar...")
-    #     webbrowser.open("https://www.xhamster.com")
-    # elif c.lower() == "open pornhub":
-    #     speak("opening pornhub...")
-    #     webbrowser.open("https://www.pornhub.com")
     else:
         aiResponse = aiProcess(c)
         print(f'Ai response: {aiResponse}')
@@ -294,8 +288,8 @@ def processCommand(c):
 def sendEmail(to,content) :
     server = smtplib.SMTP('smtp.gmail.com',587)
     server.starttls()
-    server.login('parthibkarak61@gmail.com', 'ypxkgfpsixfcogea')
-    server.sendmail('parthibkarak61@gmail.com', to, f'{content}')
+    server.login('youremail@gmail.com', 'your password')
+    server.sendmail('youremail@gmail.com', to, f'{content}')
     server.quit()
 
 def greeting():
