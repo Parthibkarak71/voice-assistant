@@ -1,5 +1,3 @@
 emails = {
-    """your friends and family members email address
-    
-    in dictionary format"""
+    """enter your friends emailid in dictionary manners"""
 }

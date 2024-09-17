@@ -25,10 +25,10 @@ import phoneNumber
 import pyautogui
 
 
+weather_api = "your_weather_api"
+newsapi = "your_news_api"
+MyApi="your_openai_api"
 
-newsapi = "your news api key"
-MyApi="your api key openai"
-api_key1 = "your api key"
 def aiProcess(command) :
 
     client = OpenAI(
@@ -54,21 +54,23 @@ def aiProcess(command) :
     return message
 
 def get_weather(city):
-    api_key = api_key1  
-    base_url = "http://api.openweathermap.org/data/2.5/weather?"
-    complete_url = f"{base_url}q={city}&appid={api_key}&units=metric"
-    
-    response = requests.get(complete_url)
-    data = response.json()
-
-    if data["cod"] != "404":
-        main = data["main"]
-        temperature = main["temp"]
-        weather_desc = data["weather"][0]["description"]
-        
-        return f"The temperature in {city} is {temperature}°C with {weather_desc}."
+    base_url = 'http://api.weatherapi.com/v1/current.json'
+    url = f'{base_url}?key={weather_api}&q={city}'
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        location = data['location']['name']
+        temp_c = data['current']['temp_c']
+        condition = data['current']['condition']['text']
+        print(f"Weather in {location}:")
+        speak(f"Weather in {location}:")
+        print(f"Temperature: {temp_c}°C")
+        speak(f"Temperature: {temp_c}°C")
+        print(f"Condition: {condition}")
+        speak(f"Condition: {condition}")
     else:
-        return "City not found."
+        speak(f"Error fetching weather data: {response.status_code}")
+
 
 
 def speak(text):
@@ -211,11 +213,11 @@ def processCommand(c):
     
  
     elif c.lower() == "restart pc":
-            subprocess.call(["shutdown", "/r"])
+        subprocess.call(["shutdown", "/r"])
 
     elif c.lower() == "sleep system":
-            speak("Hibernating")
-            subprocess.call("shutdown /i /h")
+        speak("Hibernating")
+        subprocess.call("shutdown /i /h")
 
     elif c.lower() == "open calculator":
         speak("opening calculator...")
@@ -244,14 +246,20 @@ def processCommand(c):
         
     elif c.lower() == "open camera":
         speak("opening camera...")
-        camera = cv2.VideoCapture(0)
-        while True:
-            ret, frame = camera.read()
-            cv2.imshow('Camera', frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-        camera.release()
-        cv2.destroyAllWindows()
+        capture_and_show_image()
+    
+    elif "on spotify" in c.lower():
+        song = c.lower().replace("play", "").replace("on spotify", "").strip()
+        speak(f"playing {song}...")
+        try:
+            webbrowser.open(f'https://open.spotify.com/search/{song}')
+            pyautogui.leftClick(982,578)
+        except:
+            speak("Please include 'on spotify' in the command.")
+
+    elif c.lower().startswith("tell me the weather of "):
+        city = c.lower().split("tell me the weather of ")[1].strip()
+        get_weather(city)
 
     elif c.lower().endswith('google'):
         search_term = c.lower().split('google', 1)[0].strip()
@@ -284,13 +292,30 @@ def processCommand(c):
         speak(aiResponse)
 
 
-
 def sendEmail(to,content) :
     server = smtplib.SMTP('smtp.gmail.com',587)
     server.starttls()
-    server.login('youremail@gmail.com', 'your password')
-    server.sendmail('youremail@gmail.com', to, f'{content}')
+    server.login('yourmailid@gmail.com', 'your_password')
+    server.sendmail('yourmailid@gmail.com', to, f'{content}')
     server.quit()
+
+def capture_and_show_image():
+
+    cap = cv2.VideoCapture(0)
+    
+    if not cap.isOpened():
+        speak("Sorry, I couldn't access the camera.")
+        return
+    
+    ret, frame = cap.read()
+    if ret:
+        speak("Image captured successfully.")
+        cv2.imshow('Captured Image', frame)
+        cv2.waitKey(5000)
+        cv2.destroyAllWindows()
+        cap.release()
+    else:
+        speak("Sorry, the image couldn't be captured.")
 
 def greeting():
     current_time = datetime.datetime.now().time()
@@ -309,21 +334,37 @@ def greeting():
     else :
         return "Good morning! sir,current time is " + str(current_time)
     
+    
 
 def myname():
-    recognizer = sr.Recognizer()
+    r = sr.Recognizer()
     with sr.Microphone() as source:
-        recognizer.adjust_for_ambient_noise(source, duration=1)
-        print("Tell me your name...")
-        speak("Tell me your name...")
-        audio = recognizer.listen(source, timeout=10, phrase_time_limit=10)
-        name = recognizer.recognize_google(audio)
-    return name
+        speak("Tell me your name")
+        print("Tell me your name")
+        
+        audio = r.listen(source)
+        
+        try:
+            text = r.recognize_google(audio)
+            name = text
+            return name
+        except sr.UnknownValueError:
+            speak("Sorry, I couldn't understand. Please try again.")
+            print("Sorry, I couldn't understand. Please try again.")
+            return "Unknown"
+        except sr.RequestError as e:
+            speak("Could not request results from Google Speech Recognition service.")
+            print(f"Error: {e}")
+            return "Error"
+
 
 if __name__ == "__main__":
+    name = myname()
+    speak(f"{name}I am your assistant, tell me {name} how may i help you.")
     while True:
         r = sr.Recognizer()
         with sr.Microphone() as source:
+            
             print("Speak Now...")
             audio = r.listen(source)
             try:
